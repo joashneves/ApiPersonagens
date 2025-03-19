@@ -1,0 +1,29 @@
+# Etapa de build (compilação)
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# Diretório de trabalho no contêiner
+WORKDIR /source
+
+# Copia os arquivos do projeto para o contêiner
+COPY . .
+
+# Restaura as dependências do projeto
+RUN dotnet restore
+
+# Compila o projeto no modo Release para produção
+RUN dotnet publish -c Release -o /app
+
+# Etapa de runtime (execução)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+# Diretório de trabalho no contêiner
+WORKDIR /app
+
+# Copia os arquivos compilados da etapa anterior para o contêiner
+COPY --from=build /app .
+
+# Porta exposta pelo contêiner
+EXPOSE 5000
+
+# Comando de entrada para iniciar a API
+ENTRYPOINT ["dotnet", "ApiBotDiscord.dll"]
