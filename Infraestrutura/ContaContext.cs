@@ -16,8 +16,8 @@ namespace ApiBotDiscord.Infraestrutura
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var connectionString = _configuration.GetConnectionString("MySQLData");
-            optionsBuilder.UseMySQL(connectionString);
+            var connectionString = _configuration.GetConnectionString("SQLData");
+            optionsBuilder.UseNpgsql(connectionString);
         }
     }
 }
