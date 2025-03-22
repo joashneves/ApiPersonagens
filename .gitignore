@@ -12,6 +12,7 @@
 *.sln
 .env
 Storage/*
+Migrations/
 # User-s
 pecific files (MonoDevelop/Xamarin Studio)
 *.userprefs

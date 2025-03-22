@@ -10,3 +10,4 @@ foreach ($context in $contexts) {
     Write-Host "Atualizando banco de dados para: $context"
     dotnet ef database update --context $context
 }
+
