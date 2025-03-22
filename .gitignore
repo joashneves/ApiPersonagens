@@ -11,7 +11,9 @@
 *.sln.docstates
 *.sln
 .env
-# User-specific files (MonoDevelop/Xamarin Studio)
+storage/*
+# User-s
+pecific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
 # Mono auto generated files
