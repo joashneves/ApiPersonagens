@@ -7,16 +7,18 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Carregar vari�veis do arquivo .env
-DotEnv.Load(); // Adicionando esta linha para carregar as vari�veis de ambiente
+// Carregar variaveis do arquivo .env
+DotEnv.Load(); // Adicionando esta linha para carregar as variaveis de ambiente
 
 // Add services to the container.
 // JWT
-var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY"); // Obt�m a chave do .env
+string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY"); // Obt�m a chave do .env
+System.Console.WriteLine("o segredo é " + secretKey);
 if (string.IsNullOrEmpty(secretKey))
 {
     secretKey = "your-default-secret-key";  // Chave padrão
 }
+System.Console.WriteLine("o segredo agora é " + secretKey);
 var key = Encoding.ASCII.GetBytes(secretKey);
 builder.Services.AddAuthentication(x =>
 {
@@ -69,13 +71,15 @@ builder.Services.AddSwaggerGen(c =>
                 }
             });
 });
+var allowList = Environment.GetEnvironmentVariable("CORS_ORIGIN_WHITELIST");
+System.Console.WriteLine("a lista é " + allowList);
 // Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.WithOrigins("http://localhost:5173") // Substitua com o IP ou dom�nio espec�fico
+            builder.WithOrigins(allowList) // Substitua com o IP ou dom�nio espec�fico
                    .AllowAnyHeader()
                    .AllowAnyMethod(); // Permite qualquer m�todo para esse site espec�fico
         });
@@ -99,8 +103,6 @@ builder.Services.AddDbContext<PersonagemContext>();
 builder.Services.AddDbContext<ContaContext>();
 
 var app = builder.Build();
-
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

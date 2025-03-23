@@ -155,6 +155,7 @@ namespace ApiBotDiscord.Controllers
 
         // POST: api/Contas
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<Conta>> PostConta(ContaDTO contaDto)
         {
             try
@@ -167,14 +168,15 @@ namespace ApiBotDiscord.Controllers
                 {
                     return BadRequest("A senha deve conter no mínimo 6 caracteres.");
                 }
+                /*
                 if (contaAdm == null)
                 {
                     return BadRequest("Usuário administrador não encontrado.");
-                }
                 if (contaAdm.Nivel >= 1)
                 {
                     return BadRequest("O usuário administrador não tem permissão para redefinir senhas.");
                 }
+                }*/
 
                 // Converte o nome de usuário para minúsculas
                 var userLower = contaDto.UserName.ToLower();
@@ -218,6 +220,7 @@ namespace ApiBotDiscord.Controllers
             }
             catch (Exception ex)
             {
+                System.Console.WriteLine(ex);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Erro inesperado: {ex.Message}");
             }
         }
@@ -272,6 +275,7 @@ namespace ApiBotDiscord.Controllers
             }
             catch (Exception ex)
             {
+                System.Console.WriteLine(ex);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao realizar login: {ex.Message}");
             }
         }

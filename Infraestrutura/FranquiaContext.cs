@@ -17,8 +17,16 @@ namespace ApiBotDiscord.Infraestrutura
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            #if DEBUG
+            System.Console.WriteLine("DEBUG");
             var connectionString = _configuration.GetConnectionString("SQLData");
+            System.Console.WriteLine("connectionString: " + connectionString);
             optionsBuilder.UseNpgsql(connectionString);
+            #else
+            string? connectionString = Environment.GetEnvironmentVariable("SQLData");
+            System.Console.WriteLine("connectionString: " + connectionString);
+            optionsBuilder.UseNpgsql(connectionString);
+            #endif
         }
     }
 }
