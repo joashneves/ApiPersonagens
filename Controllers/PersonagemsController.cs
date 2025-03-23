@@ -56,27 +56,27 @@ namespace ApiBotDiscord.Controllers
             {
                 // Validar valores de paginação
                 if (pageNumber < 0)
-            {
-                return BadRequest(new { mensagem = "O número da página não pode ser negativo." });
-            }
+                {
+                    return BadRequest(new { mensagem = "O número da página não pode ser negativo." });
+                }
 
-            if (pageQuantity <= 0)
-            {
-                return BadRequest(new { mensagem = "A quantidade de itens por página deve ser maior que zero." });
-            }
-            // Filtra os personagens que pertencem à franquia especificada
-            var personagens = await _context.PersonagemSet
-                .Where(p => p.Id_Franquia == id_franquia) // Supondo que IdFranquia é a propriedade que relaciona o personagem à franquia
-                .Skip(pageNumber * pageQuantity) // Pula os registros das páginas anteriores
-                .Take(pageQuantity) // Pega a quantidade de registros solicitados
-                .ToListAsync();
+                if (pageQuantity <= 0)
+                {
+                    return BadRequest(new { mensagem = "A quantidade de itens por página deve ser maior que zero." });
+                }
+                // Filtra os personagens que pertencem à franquia especificada
+                var personagens = await _context.PersonagemSet
+                    .Where(p => p.Id_Franquia == id_franquia) // Supondo que IdFranquia é a propriedade que relaciona o personagem à franquia
+                    .Skip(pageNumber * pageQuantity) // Pula os registros das páginas anteriores
+                    .Take(pageQuantity) // Pega a quantidade de registros solicitados
+                    .ToListAsync();
 
-            if (personagens == null || !personagens.Any())
-            {
-                return NotFound(); // Retorna 404 se não encontrar personagens
-            }
+                if (personagens == null || !personagens.Any())
+                {
+                    return NotFound(); // Retorna 404 se não encontrar personagens
+                }
 
-            return Ok(personagens); // Retorna a lista de personagens encontrados
+                return Ok(personagens); // Retorna a lista de personagens encontrados
             }
             catch (Exception ex)
             {
@@ -141,25 +141,25 @@ namespace ApiBotDiscord.Controllers
             try
             {
 
-            // Verifica se o personagem existe antes de tentar atualizar
-            var existingPersonagem = await _context.PersonagemSet.FindAsync(id);
-            if (existingPersonagem == null)
-            {
-                return NotFound();
-            }
-            // Verificar se o gênero fornecido é válido
-            if (!Enum.TryParse(personagem.Gender, true, out GenderEnum genderEnum))
-            {
-                return BadRequest(new { mensagem = "Gênero inválido. Por favor, forneça um valor válido: Feminino, Masculino, Não-Binário, Fluido, Outros." });
-            }
+                // Verifica se o personagem existe antes de tentar atualizar
+                var existingPersonagem = await _context.PersonagemSet.FindAsync(id);
+                if (existingPersonagem == null)
+                {
+                    return NotFound();
+                }
+                // Verificar se o gênero fornecido é válido
+                if (!Enum.TryParse(personagem.Gender, true, out GenderEnum genderEnum))
+                {
+                    return BadRequest(new { mensagem = "Gênero inválido. Por favor, forneça um valor válido: Feminino, Masculino, Não-Binário, Fluido, Outros." });
+                }
 
-            // Criar um novo personagem e associar à franquia existente
-            var AtualizarPersonagem = new Personagem
-            {
-                Name = personagem.Name,
-                Gender = genderEnum, // Utilizar o valor da enumeração
-                CaminhoArquivo = existingPersonagem.CaminhoArquivo,
-            };
+                // Criar um novo personagem e associar à franquia existente
+                var AtualizarPersonagem = new Personagem
+                {
+                    Name = personagem.Name,
+                    Gender = genderEnum, // Utilizar o valor da enumeração
+                    CaminhoArquivo = existingPersonagem.CaminhoArquivo,
+                };
                 _context.Entry(AtualizarPersonagem).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
@@ -210,24 +210,41 @@ namespace ApiBotDiscord.Controllers
                 }
 
                 // Criar o caminho para o arquivo
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(personagemViewModel.ArquivoPersonagem.FileName);
+                System.Console.WriteLine(personagemViewModel.ArquivoPersonagem.FileName);
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(personagemViewModel.ArquivoPersonagem.FileName);
+                System.Console.WriteLine(fileNameWithoutExtension);
                 var fileName = fileNameWithoutExtension;
-                var filePath = Path.Combine("Storage/Personagens", personagemViewModel.ArquivoPersonagem.FileName);
+                System.Console.WriteLine(fileName);
+                try
+                {
+                    if (Directory.Exists("Storage") == false)
+                    {
+                        var storage = Directory.CreateDirectory("Storage");
+                        storage.CreateSubdirectory("Personagens");
+                        System.Console.WriteLine("Diretorio criado");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("The process failed: {0}", e.ToString());
+                }
+                var filePath = Path.Combine("Storage", "Personagens", personagemViewModel.ArquivoPersonagem.FileName);
+                System.Console.WriteLine(filePath);
 
                 // Verifica se o arquivo já existe e, se sim, cria um novo nome
                 int count = 1;
                 while (System.IO.File.Exists(filePath))
                 {
+                    System.Console.WriteLine("Arquivo ja existe");
                     fileName = $"{fileNameWithoutExtension}_{count++}{ext}";
-                    filePath = Path.Combine("Storage/Personagens", fileName);
+                    filePath = Path.Combine("Storage", "Personagens", fileName);
                 }
-
                 // Salvar o arquivo no sistema de arquivos
                 using (Stream fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await personagemViewModel.ArquivoPersonagem.CopyToAsync(fileStream);
                 }
-
+                System.Console.WriteLine("Imagem salvada");
                 // Criar um novo personagem e associar à franquia existente
                 var novoPersonagem = new Personagem
                 {

@@ -241,7 +241,7 @@ namespace ApiBotDiscord.Controllers
             return NoContent();
         }
 
-        [HttpPost("login")]
+        [HttpPut("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
         {
