@@ -16,3 +16,14 @@ docker compose -f infraestrutura/compose.yaml up -d
 ```bash
 dotnet watch --project apibotdiscord.csproj run -- --project apibotdiscord.csproj
 ```
+
+# Migrations
+
+```bash
+dotnet ef migrations add "InicialFranquiaContext" --context FranquiaContext
+dotnet ef database update --context FranquiaContext
+dotnet ef migrations add "InicialPersonagemContext" --context PersonagemContext
+dotnet ef database update --context PersonagemContext
+dotnet ef migrations add "InicialContaContext" --context ContaContext
+dotnet ef database update --context ContaContext
+```

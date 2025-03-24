@@ -155,7 +155,7 @@ namespace ApiBotDiscord.Controllers
 
         // POST: api/Contas
         [HttpPost]
-        [AllowAnonymous]
+        // [AllowAnonymous] Cria usuario
         public async Task<ActionResult<Conta>> PostConta(ContaDTO contaDto)
         {
             try
@@ -168,16 +168,16 @@ namespace ApiBotDiscord.Controllers
                 {
                     return BadRequest("A senha deve conter no mínimo 6 caracteres.");
                 }
-                /*
+                
                 if (contaAdm == null)
                 {
                     return BadRequest("Usuário administrador não encontrado.");
+                }
                 if (contaAdm.Nivel >= 1)
                 {
                     return BadRequest("O usuário administrador não tem permissão para redefinir senhas.");
                 }
-                }*/
-
+                
                 // Converte o nome de usuário para minúsculas
                 var userLower = contaDto.UserName.ToLower();
 

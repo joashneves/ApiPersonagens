@@ -7,6 +7,6 @@
         public string Description { get; set; }
         public string Creator { get; set; }
         public string Attachment {  get; set; }
-        public DateTime Data_Published { get; set; }
+        public DateOnly Data_Published { get; set; }
     }
 }

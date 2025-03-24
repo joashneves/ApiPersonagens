@@ -32,7 +32,10 @@ namespace ApiBotDiscord.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Personagem>>> GetPersonagemSet()
         {
-            return await _context.PersonagemSet.ToListAsync();
+            var listaPersonagen = await _context.PersonagemSet.ToListAsync();
+            var tamanhoLista = listaPersonagen.Count;
+            var numeroAleatorio = new Random().Next(0, tamanhoLista);
+            return Ok(listaPersonagen[numeroAleatorio]);
         }
         // GET: api/Personagems/5
         [HttpGet("{id}")]

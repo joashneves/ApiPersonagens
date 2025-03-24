@@ -38,8 +38,8 @@ namespace ApiBotDiscord.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("Data_Published")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("Data_Published")
+                        .HasColumnType("date");
 
                     b.Property<string>("Description")
                         .IsRequired()
