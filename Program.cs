@@ -13,6 +13,11 @@ DotEnv.Load(); // Adicionando esta linha para carregar as variaveis de ambiente
 // Add services to the container.
 // JWT
 string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY"); // Obt�m a chave do .env
+var AllowSpecificOrigin = "_MyAllowSpecificOrigins"; // Nome da pol�tica de CORS
+var AllowGetOnly = "_MyAllowGetOnly"; // Nome da pol�tica de CORS
+var allowList = Environment.GetEnvironmentVariable("CORS_ORIGIN_WHITELIST");
+System.Console.WriteLine("a lista é " + allowList);
+
 System.Console.WriteLine("o segredo é " + secretKey);
 if (string.IsNullOrEmpty(secretKey))
 {
@@ -71,29 +76,7 @@ builder.Services.AddSwaggerGen(c =>
                 }
             });
 });
-var allowList = Environment.GetEnvironmentVariable("CORS_ORIGIN_WHITELIST");
-System.Console.WriteLine("a lista é " + allowList);
-// Configure CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigin",
-        builder =>
-        {
-            builder.WithOrigins(allowList) // Substitua com o IP ou dom�nio espec�fico
-                   .AllowAnyHeader()
-                   .AllowAnyMethod(); // Permite qualquer m�todo para esse site espec�fico
-        });
 
-    options.AddPolicy("AllowGetOnly",
-        builder =>
-        {
-            builder.AllowAnyOrigin() // Permite qualquer dom�nio
-                   .AllowAnyHeader()
-                   .WithMethods("GET"); // Permite apenas requisi��es GET
-        });
-});
-
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -101,6 +84,29 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<FranquiaContext>();
 builder.Services.AddDbContext<PersonagemContext>();
 builder.Services.AddDbContext<ContaContext>();
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: AllowSpecificOrigin,
+        policy =>
+        {
+            policy.WithOrigins(allowList) // Substitua com o IP ou dom�nio espec�fico
+                   .AllowAnyHeader()
+                   .AllowAnyMethod(); // Permite qualquer m�todo para esse site espec�fico
+        });
+
+    options.AddPolicy(name: AllowGetOnly,
+        policy =>
+        {
+            policy.AllowAnyOrigin() // Permite qualquer dom�nio
+                   .AllowAnyHeader()
+                   .WithMethods("GET"); // Permite apenas requisi��es GET
+        });
+});
+
+builder.Services.AddControllers();
+
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
@@ -110,23 +116,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
 }
-
 app.UseHttpsRedirection();
-app.Urls.Add("http://0.0.0.0:80");
 app.UseRouting();
 
+var sitePermitido = Environment.GetEnvironmentVariable("Site_permitido");
+System.Console.WriteLine("o site permitido é " + sitePermitido);
 app.UseCors(policy =>
 {
-    policy.WithOrigins("http://localhost:5173") // Para este site espec�fico
+    policy.WithOrigins(sitePermitido) // Para este site espec�fico
           .AllowAnyHeader()
           .AllowAnyMethod() // Permitir qualquer m�todo
           .SetIsOriginAllowedToAllowWildcardSubdomains()
           .AllowCredentials(); // Permitir envio de cookies (se necess�rio)
 });
+app.UseCors(AllowSpecificOrigin);
 
+app.UseCors(AllowGetOnly);
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.Urls.Add("http://localhost:80");
 
 app.Run();

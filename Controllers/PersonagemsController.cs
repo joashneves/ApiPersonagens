@@ -35,7 +35,7 @@ namespace ApiBotDiscord.Controllers
             var listaPersonagen = await _context.PersonagemSet.ToListAsync();
             var tamanhoLista = listaPersonagen.Count;
             var numeroAleatorio = new Random().Next(0, tamanhoLista);
-            if(listaPersonagen.Count == 0)
+            if (tamanhoLista == 0)
             {
                 return NotFound();
             }

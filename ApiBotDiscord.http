@@ -1,4 +1,4 @@
-@ApiBotDiscord_HostAddress = http://localhost:5261
+@ApiBotDiscord_HostAddress = http://localhost:80
 
 GET {{ApiBotDiscord_HostAddress}}/weatherforecast/
 Accept: application/json
