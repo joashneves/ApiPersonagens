@@ -155,7 +155,7 @@ namespace ApiBotDiscord.Controllers
 
         // POST: api/Contas
         [HttpPost]
-        // [AllowAnonymous] Cria usuario
+        //[AllowAnonymous]  Cria usuario
         public async Task<ActionResult<Conta>> PostConta(ContaDTO contaDto)
         {
             try
