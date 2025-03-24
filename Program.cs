@@ -112,6 +112,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.Urls.Add("http://localhost:80");
+app.UseRouting();
 
 app.UseCors(policy =>
 {
