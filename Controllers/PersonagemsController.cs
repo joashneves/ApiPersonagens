@@ -10,6 +10,7 @@ using ApiBotDiscord.Infraestrutura;
 using ApiBotDiscord.Domain.viewmodels;
 using Microsoft.AspNetCore.Authorization;
 using ApiBotDiscord.Domain.Dto;
+using Microsoft.OpenApi.Extensions;
 
 namespace ApiBotDiscord.Controllers
 {
@@ -30,7 +31,7 @@ namespace ApiBotDiscord.Controllers
         // GET: api/Personagems
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<Personagem>>> GetPersonagemSet()
+        public async Task<ActionResult<IEnumerable<PersonagemDTO>>> GetPersonagemSet()
         {
             var listaPersonagen = await _context.PersonagemSet.ToListAsync();
             var tamanhoLista = listaPersonagen.Count;
@@ -39,7 +40,18 @@ namespace ApiBotDiscord.Controllers
             {
                 return NotFound();
             }
-            return Ok(listaPersonagen[numeroAleatorio]);
+            var gender = listaPersonagen[numeroAleatorio].Gender;
+            string genero = gender.ToString();
+            System.Console.WriteLine(genero);
+            var franquia = await _contextFranquia.FranquiaSet.FindAsync(listaPersonagen[numeroAleatorio].Id_Franquia);
+            return Ok(new PersonagemDTO()
+                {
+                    Id = listaPersonagen[numeroAleatorio].Id,
+                    Name = listaPersonagen[numeroAleatorio].Name,
+                    Gender = listaPersonagen[numeroAleatorio].Gender.ToString(),
+                    CaminhoArquivo = listaPersonagen[numeroAleatorio].CaminhoArquivo,
+                    Franquia = franquia
+        });
         }
         // GET: api/Personagems/5
         [HttpGet("{id}")]

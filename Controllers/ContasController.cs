@@ -32,7 +32,7 @@ namespace ApiBotDiscord.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Conta>>> GetContaSet()
         {
-            return await _context.ContaSet.ToListAsync();
+          return await _context.ContaSet.ToListAsync();
         }
 
         [HttpGet("Pag")] // Retorna todas as obras com paginação
