@@ -1,6 +1,7 @@
 using ApiBotDiscord.Infraestrutura;
 using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -137,6 +138,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Urls.Add("http://localhost:80");
+string? host = Environment.GetEnvironmentVariable("Host").ToString(); 
+if (string.IsNullOrWhiteSpace(host))
+{
+    host = "http://localhost:5000";
+}
+app.Urls.Add(host);
 
 app.Run();
