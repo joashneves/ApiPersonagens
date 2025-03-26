@@ -27,14 +27,7 @@ namespace ApiBotDiscord.Controllers
         {
             _context = context;
         }
-
         // GET: api/Contas
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Conta>>> GetContaSet()
-        {
-          return await _context.ContaSet.ToListAsync();
-        }
-
         [HttpGet("Pag")] // Retorna todas as obras com paginação
         public async Task<ActionResult<IEnumerable<Conta>>> GetPagContaSet(int pageNumber, int pageQuantity)
         {

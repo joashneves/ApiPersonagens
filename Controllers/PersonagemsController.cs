@@ -33,6 +33,8 @@ namespace ApiBotDiscord.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<PersonagemDTO>>> GetPersonagemSet()
         {
+            try{
+
             var listaPersonagen = await _context.PersonagemSet.ToListAsync();
             var tamanhoLista = listaPersonagen.Count;
             var numeroAleatorio = new Random().Next(0, tamanhoLista);
@@ -52,11 +54,19 @@ namespace ApiBotDiscord.Controllers
                     CaminhoArquivo = listaPersonagen[numeroAleatorio].CaminhoArquivo,
                     Franquia = franquia
         });
+            } catch (Exception ex)
+            {
+                // Logar o erro (opcional: você pode logar o erro em um sistema de log)
+                Console.WriteLine($"Erro ao obter as Personagem paginadas: {ex.Message}");
+
+                // Retornar status 500 com a mensagem de erro
+                return StatusCode(500, new { mensagem = "Ocorreu um erro ao obter as franquias paginadas.", erro = ex.Message });
+            }
         }
         // GET: api/Personagems/5
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult<Personagem>> GetPersonagem(int id)
+        public async Task<ActionResult<PersonagemDTO>> GetPersonagem(int id)
         {
             var personagem = await _context.PersonagemSet.FindAsync(id);
 
@@ -65,7 +75,16 @@ namespace ApiBotDiscord.Controllers
                 return NotFound();
             }
 
-            return personagem;
+            var franquia = await _contextFranquia.FranquiaSet.FindAsync(personagem.Id_Franquia);
+            return Ok(new PersonagemDTO()
+                {
+                    Id = personagem.Id,
+                    Name = personagem.Name,
+                    Gender = personagem.Gender.ToString(),
+                    CaminhoArquivo = personagem.CaminhoArquivo,
+                    Franquia = franquia
+                });
+
         }
         [HttpGet("franquia/{id_franquia}")] // Rota que aceita um id de franquia
         [AllowAnonymous]
@@ -248,8 +267,6 @@ namespace ApiBotDiscord.Controllers
                     Console.WriteLine("The process failed: {0}", e.ToString());
                 }
                 var filePath = Path.Combine("Storage", "Personagens", personagemViewModel.ArquivoPersonagem.FileName);
-                System.Console.WriteLine(filePath);
-
                 // Verifica se o arquivo já existe e, se sim, cria um novo nome
                 int count = 1;
                 while (System.IO.File.Exists(filePath))
@@ -297,7 +314,6 @@ namespace ApiBotDiscord.Controllers
                 {
                     return BadRequest(new { mensagem = "O nome do personagem é obrigatório." });
                 }
-
                 Personagem personagem;
 
                 // Verifica se a franquia foi fornecida
@@ -367,6 +383,49 @@ namespace ApiBotDiscord.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet("DownloadPersonagemByPath")]
+        public async Task<IActionResult> DownloadPersonagemByPath(string path)	
+        {
+            try
+            {
+                // Verifica se o caminho foi fornecido
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    System.Console.WriteLine(path);
+                    // Busca o personagem com base no caminho do arquivo fornecido
+                    var personagem = await _context.PersonagemSet
+                        .Where(p => p.CaminhoArquivo == path)
+                        .ToListAsync();
+                    System.Console.WriteLine(personagem);
+                    if (personagem == null)
+                    {
+                        return NotFound(new { mensagem = "Personagem não encontrado para o nome e franquia especificados." });
+                    }
+                
+                }
+
+                // Verifica se o arquivo existe no caminho fornecido
+                var filePath = path;
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return NotFound(new { mensagem = "Arquivo não encontrado no servidor." });
+                }
+
+                // Lê o arquivo em bytes
+                byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
+
+                // Determina o tipo MIME do arquivo com base na extensão
+                var mimeType = GetMimeType(filePath);
+
+                // Retorna o arquivo para download
+                return File(fileBytes, mimeType, Path.GetFileName(filePath));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = "Ocorreu um erro ao baixar a imagem do personagem.", erro = ex.Message });
+            }
+        }
         // Método auxiliar para determinar o tipo MIME com base na extensão do arquivo
         private string GetMimeType(string filePath)
         {
