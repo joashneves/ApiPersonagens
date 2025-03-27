@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using System.Drawing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiBotDiscord.Domain.Models;
@@ -11,6 +12,9 @@ using ApiBotDiscord.Domain.viewmodels;
 using Microsoft.AspNetCore.Authorization;
 using ApiBotDiscord.Domain.Dto;
 using Microsoft.OpenApi.Extensions;
+using System.Drawing.Imaging;
+using System.Drawing.Drawing2D;
+using Humanizer;
 
 namespace ApiBotDiscord.Controllers
 {
@@ -220,6 +224,7 @@ namespace ApiBotDiscord.Controllers
         // POST: api/Personagems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [RequestSizeLimit(10400000)] 
         public async Task<ActionResult<Personagem>> PostPersonagem([FromForm] PersonagemViewModel personagemViewModel)
         {
             try
@@ -250,8 +255,10 @@ namespace ApiBotDiscord.Controllers
                 // Criar o caminho para o arquivo
                 System.Console.WriteLine(personagemViewModel.ArquivoPersonagem.FileName);
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(personagemViewModel.ArquivoPersonagem.FileName);
-                System.Console.WriteLine(fileNameWithoutExtension);
+                
+                System.Console.WriteLine("Conteudo " + personagemViewModel.ArquivoPersonagem);
                 var fileName = fileNameWithoutExtension;
+            
                 System.Console.WriteLine(fileName);
                 try
                 {
@@ -276,6 +283,11 @@ namespace ApiBotDiscord.Controllers
                     filePath = Path.Combine("Storage", "Personagens", fileName);
                 }
                 // Salvar o arquivo no sistema de arquivos
+                Console.WriteLine("Tamhnado do aruqivo é "+ filePath.Length);
+
+                if (filePath.Length > 30) { 
+                    return BadRequest("Arquivo muito pessado selecione outro");
+                }
                 using (Stream fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await personagemViewModel.ArquivoPersonagem.CopyToAsync(fileStream);
@@ -455,7 +467,7 @@ namespace ApiBotDiscord.Controllers
 
             return NoContent();
         }
-
+        
         private bool PersonagemExists(int id)
         {
             return _context.PersonagemSet.Any(e => e.Id == id);
