@@ -5,6 +5,7 @@
         public string Name_Franquia { get; set; }
         public string Name { get; set; }
         public string Gender { get; set; }
+        public string UserName { get; set;}
         public string CaminhoArquivo { get; set; }
     }
 }

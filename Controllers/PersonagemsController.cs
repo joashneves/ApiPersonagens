@@ -15,6 +15,8 @@ using Microsoft.OpenApi.Extensions;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using Humanizer;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+using NuGet.Protocol.Plugins;
 
 namespace ApiBotDiscord.Controllers
 {
@@ -25,11 +27,13 @@ namespace ApiBotDiscord.Controllers
     {
         private readonly PersonagemContext _context;
         private readonly FranquiaContext _contextFranquia;
+        private readonly ContaContext _contextConta;
 
-        public PersonagemsController(PersonagemContext context, FranquiaContext contextFranquia)
+        public PersonagemsController(PersonagemContext context, FranquiaContext contextFranquia, ContaContext contextConta)
         {
             _context = context;
             _contextFranquia = contextFranquia;
+            _contextConta = contextConta;
         }
 
         // GET: api/Personagems
@@ -37,28 +41,30 @@ namespace ApiBotDiscord.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<PersonagemDTO>>> GetPersonagemSet()
         {
-            try{
-
-            var listaPersonagen = await _context.PersonagemSet.ToListAsync();
-            var tamanhoLista = listaPersonagen.Count;
-            var numeroAleatorio = new Random().Next(0, tamanhoLista);
-            if (tamanhoLista == 0)
+            try
             {
-                return NotFound();
-            }
-            var gender = listaPersonagen[numeroAleatorio].Gender;
-            string genero = gender.ToString();
-            System.Console.WriteLine(genero);
-            var franquia = await _contextFranquia.FranquiaSet.FindAsync(listaPersonagen[numeroAleatorio].Id_Franquia);
-            return Ok(new PersonagemDTO()
+
+                var listaPersonagen = await _context.PersonagemSet.ToListAsync();
+                var tamanhoLista = listaPersonagen.Count;
+                var numeroAleatorio = new Random().Next(0, tamanhoLista);
+                if (tamanhoLista == 0)
+                {
+                    return NotFound();
+                }
+                var gender = listaPersonagen[numeroAleatorio].Gender;
+                string genero = gender.ToString();
+                System.Console.WriteLine(genero);
+                var franquia = await _contextFranquia.FranquiaSet.FindAsync(listaPersonagen[numeroAleatorio].Id_Franquia);
+                return Ok(new PersonagemDTO()
                 {
                     Id = listaPersonagen[numeroAleatorio].Id,
                     Name = listaPersonagen[numeroAleatorio].Name,
                     Gender = listaPersonagen[numeroAleatorio].Gender.ToString(),
                     CaminhoArquivo = listaPersonagen[numeroAleatorio].CaminhoArquivo,
                     Franquia = franquia
-        });
-            } catch (Exception ex)
+                });
+            }
+            catch (Exception ex)
             {
                 // Logar o erro (opcional: você pode logar o erro em um sistema de log)
                 Console.WriteLine($"Erro ao obter as Personagem paginadas: {ex.Message}");
@@ -81,13 +87,13 @@ namespace ApiBotDiscord.Controllers
 
             var franquia = await _contextFranquia.FranquiaSet.FindAsync(personagem.Id_Franquia);
             return Ok(new PersonagemDTO()
-                {
-                    Id = personagem.Id,
-                    Name = personagem.Name,
-                    Gender = personagem.Gender.ToString(),
-                    CaminhoArquivo = personagem.CaminhoArquivo,
-                    Franquia = franquia
-                });
+            {
+                Id = personagem.Id,
+                Name = personagem.Name,
+                Gender = personagem.Gender.ToString(),
+                CaminhoArquivo = personagem.CaminhoArquivo,
+                Franquia = franquia
+            });
 
         }
         [HttpGet("franquia/{id_franquia}")] // Rota que aceita um id de franquia
@@ -224,11 +230,19 @@ namespace ApiBotDiscord.Controllers
         // POST: api/Personagems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [RequestSizeLimit(10400000)] 
+        [RequestSizeLimit(943231)]
+        [AllowAnonymous]
         public async Task<ActionResult<Personagem>> PostPersonagem([FromForm] PersonagemViewModel personagemViewModel)
         {
             try
             {
+                System.Console.WriteLine(personagemViewModel);
+                var contaExistente = await _contextConta.ContaSet
+                    .FirstOrDefaultAsync(c => c.UserName == personagemViewModel.UserName);
+                if (contaExistente == null)
+                {
+                    return Unauthorized(new { mensagem = "Usuario não encontrado" });
+                };
                 // Verificar se a franquia existe pelo nome
                 var franquia = await _contextFranquia.FranquiaSet
                     .FirstOrDefaultAsync(f => f.Name == personagemViewModel.Name_Franquia);
@@ -255,10 +269,10 @@ namespace ApiBotDiscord.Controllers
                 // Criar o caminho para o arquivo
                 System.Console.WriteLine(personagemViewModel.ArquivoPersonagem.FileName);
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(personagemViewModel.ArquivoPersonagem.FileName);
-                
+
                 System.Console.WriteLine("Conteudo " + personagemViewModel.ArquivoPersonagem);
                 var fileName = fileNameWithoutExtension;
-            
+
                 System.Console.WriteLine(fileName);
                 try
                 {
@@ -283,10 +297,9 @@ namespace ApiBotDiscord.Controllers
                     filePath = Path.Combine("Storage", "Personagens", fileName);
                 }
                 // Salvar o arquivo no sistema de arquivos
-                Console.WriteLine("Tamhnado do aruqivo é "+ filePath.Length);
-
-                if (filePath.Length > 30) { 
-                    return BadRequest("Arquivo muito pessado selecione outro");
+                if (filePath.Length > 40)
+                {
+                    return BadRequest("Nome de arquivo muito longo, escolha outro");
                 }
                 using (Stream fileStream = new FileStream(filePath, FileMode.Create))
                 {
@@ -397,7 +410,7 @@ namespace ApiBotDiscord.Controllers
 
         [AllowAnonymous]
         [HttpGet("DownloadPersonagemByPath")]
-        public async Task<IActionResult> DownloadPersonagemByPath(string path)	
+        public async Task<IActionResult> DownloadPersonagemByPath(string path)
         {
             try
             {
@@ -414,7 +427,7 @@ namespace ApiBotDiscord.Controllers
                     {
                         return NotFound(new { mensagem = "Personagem não encontrado para o nome e franquia especificados." });
                     }
-                
+
                 }
 
                 // Verifica se o arquivo existe no caminho fornecido
@@ -467,7 +480,7 @@ namespace ApiBotDiscord.Controllers
 
             return NoContent();
         }
-        
+
         private bool PersonagemExists(int id)
         {
             return _context.PersonagemSet.Any(e => e.Id == id);
