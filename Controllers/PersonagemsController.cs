@@ -188,6 +188,12 @@ namespace ApiBotDiscord.Controllers
 
             try
             {
+                var contaExistente = await _contextConta.ContaSet
+                    .FirstOrDefaultAsync(c => c.UserName == personagem.UserName);
+                if (contaExistente == null)
+                {
+                    return Unauthorized(new { mensagem = "Usuario não encontrado" });
+                };
 
                 // Verifica se o personagem existe antes de tentar atualizar
                 var existingPersonagem = await _context.PersonagemSet.FindAsync(id);
